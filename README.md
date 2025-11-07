@@ -1,179 +1,70 @@
-![https://crlibre.org](https://crlibre.org/wp-content/uploads/2018/03/cropped-CRLibre-Logo_15-1.png)
+# Facturador CR (Spring Boot)
 
-## Sobre CRLibre
+Java Spring Boot microservice for Costa Rican electronic invoicing with multi-tenant API key authentication and PostgreSQL persistence.
 
-Somos una comunidad de individuos y organizaciones que voluntariamente unimos
-esfuerzos para colaborar y compartir conocimiento, crear software libre para
-resolver problemas que enfrentamos en nuestra realidad en Costa Rica.
+## Features
 
-[![GitHub](https://img.shields.io/github/license/CRLibre/API_Hacienda.svg)](https://github.com/CRLibre/API_Hacienda/blob/master/LICENSE)
-[![GitHub commit activity the past week, 4 weeks, year](https://img.shields.io/github/commit-activity/y/CRLibre/API_Hacienda.svg?logo=github)](https://github.com/CRLibre/API_Hacienda/commits/master)
-[![GitHub issues](https://img.shields.io/github/issues-raw/CRLibre/API_Hacienda.svg)](https://github.com/CRLibre/API_Hacienda/issues)
-[![GitHub pulls](https://img.shields.io/github/issues-pr/CRLibre/API_Hacienda.svg)](https://github.com/CRLibre/API_Hacienda/pulls)
-[![PHPUnit Tests](https://github.com/CRLibre/API_Hacienda/actions/workflows/phpunit.yml/badge.svg)](https://github.com/CRLibre/API_Hacienda/actions/workflows/phpunit.yml)
-[![Telegram @CRLibreFE](https://img.shields.io/badge/Telegram-%40CRLibreFE-blue.svg?logo=telegram)](https://crlibre.org/chats/)
+- REST API for invoice submission, status retrieval, and retry (`/v1/invoices`).
+- Tenant administration endpoint for certificate upload (`/v1/tenants/{id}/certificate`).
+- Multi-tenant architecture with per-request API key resolution.
+- XML generation scaffold using JAXB (version 4.4 payload template).
+- Placeholder XAdES signing hook ready for integration with Apache Santuario / BouncyCastle.
+- Hacienda client skeleton for token retrieval, submission, and status polling.
+- Scheduler that refreshes invoice status for `SENT` documents.
+- Flyway migrations for PostgreSQL schema.
+- Docker Compose stack with PostgreSQL.
 
-En este repositorio estamos creando
-un [API](https://es.wikipedia.org/wiki/Interfaz_de_programaci%C3%B3n_de_aplicaciones "Interfaz de programación de aplicaciones, del inglés Application Programming Interface es un conjunto de subrutinas, funciones y procedimientos que ofrece una pieza de software para ser utilizado por otro software")
+## Getting started
 
-*
+1. **Configure environment**
+   ```bash
+   cp application.yml.example application.yml
+   ```
+   Adjust datasource, Hacienda credentials, and encryption secret as needed.
 
-*[libre](https://es.wikipedia.org/wiki/Software_libre "El software libre es todo programa informático cuyo código fuente puede ser estudiado, modificado, y utilizado libremente con cualquier fin y redistribuido con o sin cambios o mejoras")
-** y componentes de software para simplificar el proceso de la **Factura
-Electrónica** requerido por el Ministerio de Hacienda de Costa Rica.
+2. **Run locally**
+   ```bash
+   mvn spring-boot:run
+   ```
 
-#### Documentación general sobre la Factura Electrónica en Costa Rica
+3. **Run with Docker Compose**
+   ```bash
+   docker-compose up --build
+   ```
 
-De forma complementaria al proyecto de este API creamos dos repositorios
-relacionados con la facturación electrónica
+4. **API Authentication**
+   - Each request must include `X-Api-Key` with a tenant's API key.
+   - Use the tenant controller to upload Base64 `.p12` certificates and PINs.
 
-* Repositorio de información general del proceso de la facturación
-  electrónica: https://github.com/CRLibre/fe-hacienda-cr-docs
-    * Allí se encuentra un [Diagrama de flujo Factura Electrónica Costa Rica
-      ](https://raw.githubusercontent.com/CRLibre/docs-fe-hacienda-cr/master/diagrama-flujo/Diagrama%20de%20Flujo%20para%20Factura%20Electronica%20Costa%20Rica.png)
-* Archivos y recursos comunes para cualquier
-  proyecto https://github.com/CRLibre/fe-hacienda-cr-misc
+## Testing endpoints
 
-### ¿Por qué un API para conectarse a los del Ministerio de Hacienda?
+Use the provided Postman collection (to be generated) or curl commands. Example invoice submission:
 
-Para
-la [implementación de la Factura Electrónica](https://www.hacienda.go.cr/docs/N2ComprobantesElectronicos.pdf),
-el Ministerio de Hacienda puso a
-disposición [documentación técnica e interfaces de programación sofisticados](https://atv.hacienda.go.cr/ATV/ComprobanteElectronico/frmAnexosyEstructuras.aspx)
-que muchos programadores encuentran difíciles de comprender y utilizar. Nuestro
-objetivo es crear un software que simplifique el proceso a desarrolladores de
-cumplir con
-las [resoluciones del Ministerio](https://cdn.comprobanteselectronicos.go.cr/xml-schemas/Resoluci%C3%B3n_General_sobre_disposiciones_t%C3%A9cnicas_comprobantes_electr%C3%B3nicos_para_efectos_tributarios.pdf),
-de forma más ágil, desde cualquier lenguaje de programación y sin depender de
-intermediarios al poder instalar esta pieza
-de [software libre](https://es.wikipedia.org/wiki/Software_libre) en un servidor
-propio manteniendo control de sus datos sensibles.
+```bash
+curl -X POST http://localhost:8080/v1/invoices \
+  -H 'Content-Type: application/json' \
+  -H 'X-Api-Key: <tenant-api-key>' \
+  -d '{
+    "documentType": "01",
+    "currency": "CRC",
+    "total": 1000,
+    "customerName": "Cliente Demo",
+    "items": [
+      {
+        "lineNumber": 1,
+        "description": "Servicio",
+        "quantity": 1,
+        "unitPrice": 1000,
+        "subtotal": 1000,
+        "taxAmount": 0
+      }
+    ]
+  }'
+```
 
-## Cómo colaborar
+## Notes
 
-* Póngase en contacto con los otros miembros voluntarios de la comunidad.
-    * [Sistema de Preguntas y Respuestas de la Comunidad](https://crlibre.org/qa/)
-    * [Grupos de CHAT de CRLibre.org](https://crlibre.org/chats/)
-    * [Grupo de Facebook CRLibre](https://www.facebook.com/groups/105812240170199/)
-
-## Sobre este API
-
-**Trabajo en proceso [lo estamos creando en conjunto](THANKS.md)**
-
-Esta es una API en PHP, la idea de esto es poder realizar módulos sobre una base
-que maneja ya diferentes aspectos como la conexión a bases de datos y usuarios,
-está basado en [CalaAPI](https://github.com/CRLibre/CalaAPI)
-
-Se encuentran 2 carpetas, una que se llama api y otra que se llama www
-
-La que se llama api la idea es ubicarla en un lugar en donde no sea accesible, o
-bien, que no sea en el "document root" (ejemplo: public_html)
-
-La que se llama www contiene un archivo de configuración, en donde se modifican
-aspectos como la conexión a base de datos, nombre del sitio y muy importante, la
-ubicación de en donde se encontrará el resto de cosas o bien, la carpeta api.
-
-## Requerimientos mínimos
-
-- PHP >= 5.5.0
-- MySQL o MariaDB ([MySQLi](http://php.net/manual/en/book.mysqli.php))
-- [cURL](http://php.net/manual/en/book.curl.php)
-- [php-xml](http://php.net/manual/en/book.simplexml.php)
-- [OpenSSL](http://php.net/manual/en/book.openssl.php)
-
-### Conectores/Clientes del API
-
-* Conector en .NET https://github.com/CRLibre/fe-hacienda-cr-dotnet
-* Conector en
-  JavaScript: https://github.com/CRLibre/CalaAPI/tree/master/conectores/js
-
-### Uso del API
-
-* Ver y colaborar documentación
-  en [wiki del API](https://github.com/CRLibre/API_Hacienda/wiki "Wiki CRLibre API_Hacienda")
-*
-
-Documento [Step by Step del API](https://crlibre.org/wp-content/uploads/2018/08/586abf6db6fc1117b60b2753-280x124.png)
-para migrar al wiki.
-
-#### Primeros Pasos
-
-* [Primera petición al API](https://github.com/CRLibre/API_Hacienda/wiki/Primera-petici%C3%B3n-al-API)
-* [Uso de Módulos del API](https://github.com/CRLibre/API_Hacienda/wiki/Uso-de-M%C3%B3dulos-del-API)
-* [Creación de Usuario](https://github.com/CRLibre/API_Hacienda/wiki/Creaci%C3%B3n-de-Usuario)
-* [Login y Logout del API](https://github.com/CRLibre/API_Hacienda/wiki/Login-y-Logout-del-API)
-
-#### Uso de los módulos del API
-
-* Upload del certificado o llave criptográfica
-* Solicitud de Token
-* Solicitud de refrescar token
-* Creación de Clave para los XML de Factura Electrónica
-* Creación de Clave para Nota de Crédito
-* Creación de Clave para Nota de Débito
-* Creación de Clave para Tiquete Electronico
-* Creación de clave para Mensaje Aceptación (Aceptación total, Parcialmente y
-  Rechazo)
-* Creación de xml Factura Electrónica
-* Creación de xml Nota de Crédito
-* Creación de xml Nota de Debito
-* Creación de xml Tiquete Electronico
-* Creación de xml Mensaje Aceptacion
-* Firmado del xml Factura Electrónica
-* Firmado del xml Nota de Crédito
-* Firmado del xml Nota de Debito
-* Firmado del xml Tiquete Electronico
-* Firmado del xml Mensaje de Aceptación
-* Envió a Hacienda del xml de Factura Electrónica, Notas de Crédito, Notas de
-  Debito
-* Envió a Hacienda del xml de Tiquete Electronico
-* Envió a Hacienda del xml de Mensaje Aceptación (Aceptación total, Parcialmente
-  y Rechazo)
-* Consulta de estado de los comprobantes
-
-#### Observations
-
-* ALTER TABLE files MODIFY COLUMN md5 VARCHAR(40);
-
-#### Ejecutar los Test Cases:
-
-Se tiene una carpeta con pruebas unitarias en tests/.
-Las pruebas escritas con PHPUnit, y se pueden ejecutar con el siguiente
-commando:
-```./vendor/bin/phpunit --stderr --debug --bootstrap vendor/autoload.php tests/api_contrib_genXML_FE.php```
-
-Guardando el resultado en un archivo de junit:
-```./vendor/bin/phpunit --log-junit junit-report.xml --stderr --debug --bootstrap vendor/autoload.php tests/api_contrib_genXML_FE.php```
-
-Convertir el archivo junit-report.xml a HTML:
-```junit2html junit-report.xml junit-report.html```
-
-Instalar junit2html:
-```./vendor/bin/junit2html```
-
-Ejecutar test específico:
-
-```./vendor/bin/phpunit --log-junit junit-report.xml --stderr --debug --bootstrap vendor/autoload.php --filter testGenXMLFeFullStructure  tests/api_contrib_genXML_FE.php```
-
-# 📢 Aviso Importante - Licencia y Colaboración Obligatoria 📢
-
-Este proyecto está licenciado bajo la **Licencia GNU Affero General Public
-License v3 (AGPL v3)**.  
-**Todos los usuarios y desarrolladores que utilicen, modifiquen o distribuyan
-este módulo están obligados a colaborar en su mantenimiento y mejora, conforme a
-los términos de la licencia.**
-
-## 🔹 Condiciones principales
-
-- Cualquier modificación o mejora debe ser publicada y compartida con la
-  comunidad bajo la misma licencia AGPL v3.
-- Si el módulo se utiliza en entornos privados o en servicios web, el código
-  fuente debe estar disponible para todos los usuarios que interactúen con él.
-- Se espera que todos los beneficiarios del módulo contribuyan con *
-  *correcciones, mejoras o documentación** para asegurar su evolución y
-  mantenimiento.
-
-💡 _El incumplimiento de estas condiciones podría considerarse una violación de
-los términos de la licencia AGPL v3._
-
----
+- XML signing is provided as an integration point; replace the placeholder logic in `XmlSigner` with XAdES-EPES compliant implementation.
+- `HaciendaClientImpl` uses `WebClient` and expects valid credentials/URLs for Hacienda's sandbox or production.
+- Encryption secret must be a 16+ character string to derive the AES key for certificate PIN storage.
+- Ensure tenants are preloaded with API keys and certificates before using the invoice endpoints.

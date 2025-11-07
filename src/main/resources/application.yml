@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: facturador-cr
+  datasource:
+    url: jdbc:postgresql://localhost:5432/facturador
+    username: facturador
+    password: facturador
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.facturador: DEBUG
+
+app:
+  security:
+    encryption-secret: change-me-secret
+  storage:
+    root: storage
+  hacienda:
+    base-url: https://api-sandbox.hacienda.go.cr
+    token-url: https://idp-sandbox.hacienda.go.cr
+    client-id: change-me
+    client-secret: change-me
+  scheduler:
+    invoice-status-delay: 300000

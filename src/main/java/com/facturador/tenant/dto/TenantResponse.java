@@ -1,0 +1,6 @@
+package com.facturador.tenant.dto;
+
+import com.facturador.tenant.Tenant.Environment;
+
+public record TenantResponse(Long id, String name, String apiKey, Environment environment, boolean hasCertificate) {
+}

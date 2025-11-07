@@ -1,51 +1,27 @@
-version: "3.5"
+version: '3.8'
 services:
-  php-apache:
-    container_name: ${APP_CONTAINER_NAME:-crlibre-app}
-    build:
-      context: .
-      dockerfile: ./docker-php-apache/Dockerfile
-    ports:
-      - 8080:80
-      - 8443:443
-    env_file:
-      - ./docker-php-apache/php-apache.env
+  postgres:
+    image: postgres:15
     environment:
-      CRLIBRE_API_HACIENDA_DB_HOST: ${CRLIBRE_API_HACIENDA_DB_HOST:-mariadb}
-      CRLIBRE_API_HACIENDA_DB_NAME: ${DB_NAME:-testdb}
-      CRLIBRE_API_HACIENDA_DB_USER: ${DB_USER:-testuser}
-      CRLIBRE_API_HACIENDA_DB_PASSWORD: ${DB_PASSWORD:-testpassword}
+      POSTGRES_DB: facturador
+      POSTGRES_USER: facturador
+      POSTGRES_PASSWORD: facturador
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  app:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/facturador
+      SPRING_DATASOURCE_USERNAME: facturador
+      SPRING_DATASOURCE_PASSWORD: facturador
+      APP_SECURITY_ENCRYPTION_SECRET: change-me-secret
+    ports:
+      - "8080:8080"
     depends_on:
-      - "mariadb"
-    networks:
-      - crlibrenet
+      - postgres
     volumes:
-      - ./www/settings.php:/var/www/html/settings.php
-      - ./api:/var/www/html/api
-  mariadb:
-    image: mariadb:10.11.4
-    container_name: ${MARIADB_CONTAINER_NAME:-crlibre-mariadb}
-    ports:
-      - 4407:3306
-    env_file:
-      - ./docker-php-apache/php-apache.env
-    volumes:
-      - ./recursos/sql:/docker-entrypoint-initdb.d
-      - ./mysql-data:/var/lib/mysql
-    environment:
-      TZ: "America/Costa_Rica"
-      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpwd}
-      MYSQL_USER: ${DB_USER:-testuser}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-testpassword}
-      MYSQL_DATABASE: ${DB_NAME:-testdb}
-    restart: always
-    tty: true
-    networks:
-      - crlibrenet
-
-networks:
-  crlibrenet:
-    driver: bridge
-    driver_opts:
-      com.docker.network.enable_ipv6: "false"
+      - ./storage:/app/storage
+volumes:
+  postgres-data:
