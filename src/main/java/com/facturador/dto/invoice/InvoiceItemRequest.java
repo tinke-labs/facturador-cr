@@ -1,14 +1,27 @@
 package com.facturador.dto.invoice;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
+import java.util.List;
 
 public record InvoiceItemRequest(
-    @Positive int lineNumber,
+    @NotNull Integer lineNumber,
+    @NotBlank String commercialCode,
     @NotBlank String description,
-    @Positive double quantity,
-    @Positive double unitPrice,
-    @Positive double subtotal,
-    double taxAmount
+    @NotNull @Positive BigDecimal quantity,
+    @NotBlank String measurementUnit,
+    String commercialUnit,
+    @NotNull @Positive BigDecimal unitPrice,
+    @NotNull @Positive BigDecimal totalAmount,
+    @PositiveOrZero BigDecimal discountAmount,
+    String discountReason,
+    @NotNull @PositiveOrZero BigDecimal subtotal,
+    @PositiveOrZero BigDecimal taxableBase,
+    @NotNull @Positive BigDecimal totalLineAmount,
+    List<@Valid InvoiceTaxRequest> taxes
 ) {
 }

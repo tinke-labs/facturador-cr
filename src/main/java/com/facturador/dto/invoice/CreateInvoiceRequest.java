@@ -4,15 +4,22 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record CreateInvoiceRequest(
     @NotBlank String documentType,
+    @NotBlank String activityCode,
+    @NotNull OffsetDateTime issueDate,
+    @NotBlank String saleCondition,
+    @Size(max = 10) String creditTerm,
     @NotBlank String currency,
-    @Positive double total,
-    @NotBlank String customerName,
-    @NotEmpty List<@Valid InvoiceItemRequest> items,
-    List<@Valid InvoiceTaxRequest> taxes
+    BigDecimal exchangeRate,
+    @NotNull @Valid ReceiverRequest receiver,
+    @NotNull @Valid InvoiceSummaryRequest summary,
+    @NotEmpty List<@NotBlank String> paymentMethods,
+    @NotEmpty List<@Valid InvoiceItemRequest> items
 ) {
 }

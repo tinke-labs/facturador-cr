@@ -31,6 +31,48 @@ public class Tenant {
     @Column(name = "api_key", nullable = false, unique = true)
     private String apiKey;
 
+    @Column(name = "identification_type", nullable = false, length = 2)
+    private String identificationType;
+
+    @Column(name = "identification_number", nullable = false, length = 20)
+    private String identificationNumber;
+
+    @Column(name = "commercial_name")
+    private String commercialName;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "branch_code", nullable = false, length = 3)
+    private String branchCode;
+
+    @Column(name = "terminal_code", nullable = false, length = 5)
+    private String terminalCode;
+
+    @Column(name = "situation", nullable = false, length = 1)
+    private String situation = "1";
+
+    @Column(name = "phone_country_code", length = 4)
+    private String phoneCountryCode;
+
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "province", length = 1)
+    private String province;
+
+    @Column(name = "canton", length = 2)
+    private String canton;
+
+    @Column(name = "district", length = 2)
+    private String district;
+
+    @Column(name = "neighborhood", length = 2)
+    private String neighborhood;
+
+    @Column(name = "other_signs")
+    private String otherSigns;
+
     @Column(name = "certificate_inline", columnDefinition = "TEXT")
     private String certificateInline;
 
@@ -72,6 +114,118 @@ public class Tenant {
 
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    public String getIdentificationType() {
+        return identificationType;
+    }
+
+    public void setIdentificationType(String identificationType) {
+        this.identificationType = identificationType;
+    }
+
+    public String getIdentificationNumber() {
+        return identificationNumber;
+    }
+
+    public void setIdentificationNumber(String identificationNumber) {
+        this.identificationNumber = identificationNumber;
+    }
+
+    public String getCommercialName() {
+        return commercialName;
+    }
+
+    public void setCommercialName(String commercialName) {
+        this.commercialName = commercialName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getBranchCode() {
+        return branchCode;
+    }
+
+    public void setBranchCode(String branchCode) {
+        this.branchCode = branchCode;
+    }
+
+    public String getTerminalCode() {
+        return terminalCode;
+    }
+
+    public void setTerminalCode(String terminalCode) {
+        this.terminalCode = terminalCode;
+    }
+
+    public String getSituation() {
+        return situation;
+    }
+
+    public void setSituation(String situation) {
+        this.situation = situation;
+    }
+
+    public String getPhoneCountryCode() {
+        return phoneCountryCode;
+    }
+
+    public void setPhoneCountryCode(String phoneCountryCode) {
+        this.phoneCountryCode = phoneCountryCode;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCanton() {
+        return canton;
+    }
+
+    public void setCanton(String canton) {
+        this.canton = canton;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
+    public String getNeighborhood() {
+        return neighborhood;
+    }
+
+    public void setNeighborhood(String neighborhood) {
+        this.neighborhood = neighborhood;
+    }
+
+    public String getOtherSigns() {
+        return otherSigns;
+    }
+
+    public void setOtherSigns(String otherSigns) {
+        this.otherSigns = otherSigns;
     }
 
     public String getCertificateInline() {

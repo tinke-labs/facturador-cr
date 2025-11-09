@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "invoice_taxes")
@@ -20,21 +21,30 @@ public class InvoiceTax {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invoice_id", nullable = false)
-    private Invoice invoice;
+    @JoinColumn(name = "invoice_item_id", nullable = false)
+    private InvoiceItem invoiceItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
-    @Column(name = "tax_type", nullable = false)
-    private String taxType;
+    @Column(name = "tax_code", nullable = false)
+    private String taxCode;
 
-    @Column(name = "tax_rate", nullable = false)
-    private double taxRate;
+    @Column(name = "rate_code")
+    private String rateCode;
 
-    @Column(name = "tax_amount", nullable = false)
-    private double taxAmount;
+    @Column(name = "tax_rate", nullable = false, precision = 5, scale = 2)
+    private BigDecimal taxRate;
+
+    @Column(name = "factor_iva", precision = 6, scale = 5)
+    private BigDecimal factorIVA;
+
+    @Column(name = "taxable_base", nullable = false, precision = 18, scale = 5)
+    private BigDecimal taxableBase;
+
+    @Column(name = "tax_amount", nullable = false, precision = 18, scale = 5)
+    private BigDecimal taxAmount;
 
     public Long getId() {
         return id;
@@ -44,12 +54,12 @@ public class InvoiceTax {
         this.id = id;
     }
 
-    public Invoice getInvoice() {
-        return invoice;
+    public InvoiceItem getInvoiceItem() {
+        return invoiceItem;
     }
 
-    public void setInvoice(Invoice invoice) {
-        this.invoice = invoice;
+    public void setInvoiceItem(InvoiceItem invoiceItem) {
+        this.invoiceItem = invoiceItem;
     }
 
     public Tenant getTenant() {
@@ -60,27 +70,51 @@ public class InvoiceTax {
         this.tenant = tenant;
     }
 
-    public String getTaxType() {
-        return taxType;
+    public String getTaxCode() {
+        return taxCode;
     }
 
-    public void setTaxType(String taxType) {
-        this.taxType = taxType;
+    public void setTaxCode(String taxCode) {
+        this.taxCode = taxCode;
     }
 
-    public double getTaxRate() {
+    public String getRateCode() {
+        return rateCode;
+    }
+
+    public void setRateCode(String rateCode) {
+        this.rateCode = rateCode;
+    }
+
+    public BigDecimal getTaxRate() {
         return taxRate;
     }
 
-    public void setTaxRate(double taxRate) {
+    public void setTaxRate(BigDecimal taxRate) {
         this.taxRate = taxRate;
     }
 
-    public double getTaxAmount() {
+    public BigDecimal getFactorIVA() {
+        return factorIVA;
+    }
+
+    public void setFactorIVA(BigDecimal factorIVA) {
+        this.factorIVA = factorIVA;
+    }
+
+    public BigDecimal getTaxableBase() {
+        return taxableBase;
+    }
+
+    public void setTaxableBase(BigDecimal taxableBase) {
+        this.taxableBase = taxableBase;
+    }
+
+    public BigDecimal getTaxAmount() {
         return taxAmount;
     }
 
-    public void setTaxAmount(double taxAmount) {
+    public void setTaxAmount(BigDecimal taxAmount) {
         this.taxAmount = taxAmount;
     }
 }
