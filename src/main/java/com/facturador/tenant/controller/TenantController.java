@@ -1,6 +1,6 @@
-package com.facturador.tenant.web;
+package com.facturador.tenant.controller;
 
-import com.facturador.tenant.TenantService;
+import com.facturador.tenant.service.TenantService;
 import com.facturador.tenant.dto.CertificateRequest;
 import com.facturador.tenant.dto.TenantResponse;
 import jakarta.validation.Valid;

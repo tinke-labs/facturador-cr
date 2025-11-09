@@ -1,6 +1,6 @@
-package com.facturador.invoice.web;
+package com.facturador.invoice.controller;
 
-import com.facturador.invoice.InvoiceService;
+import com.facturador.invoice.service.InvoiceService;
 import com.facturador.invoice.dto.CreateInvoiceRequest;
 import com.facturador.invoice.dto.InvoiceResponse;
 import jakarta.validation.Valid;

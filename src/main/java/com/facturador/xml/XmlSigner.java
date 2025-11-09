@@ -1,6 +1,6 @@
 package com.facturador.xml;
 
-import com.facturador.tenant.Tenant;
+import com.facturador.tenant.model.Tenant;
 import java.util.Base64;
 import org.springframework.stereotype.Component;
 

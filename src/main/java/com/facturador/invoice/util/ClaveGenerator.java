@@ -1,6 +1,6 @@
-package com.facturador.invoice;
+package com.facturador.invoice.util;
 
-import com.facturador.tenant.Tenant;
+import com.facturador.tenant.model.Tenant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ThreadLocalRandom;

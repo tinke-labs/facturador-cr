@@ -1,4 +1,6 @@
-package com.facturador.tenant;
+package com.facturador.tenant.context;
+
+import com.facturador.tenant.model.Tenant;
 
 public final class TenantContext {
 

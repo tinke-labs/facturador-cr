@@ -1,5 +1,6 @@
-package com.facturador.tenant;
+package com.facturador.tenant.repository;
 
+import com.facturador.tenant.model.Tenant;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

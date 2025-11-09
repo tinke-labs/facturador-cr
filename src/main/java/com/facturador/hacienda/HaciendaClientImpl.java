@@ -2,7 +2,7 @@ package com.facturador.hacienda;
 
 import com.facturador.hacienda.dto.HaciendaStatusResponse;
 import com.facturador.hacienda.dto.HaciendaSubmissionResponse;
-import com.facturador.tenant.Tenant;
+import com.facturador.tenant.model.Tenant;
 import com.facturador.storage.EncryptionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

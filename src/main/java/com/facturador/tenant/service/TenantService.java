@@ -1,13 +1,15 @@
-package com.facturador.tenant;
+package com.facturador.tenant.service;
 
-import com.facturador.tenant.Tenant.Environment;
+import com.facturador.hacienda.HaciendaTokenService;
 import com.facturador.tenant.dto.CertificateRequest;
 import com.facturador.tenant.dto.TenantResponse;
 import com.facturador.tenant.exception.TenantNotFoundException;
 import com.facturador.tenant.exception.TenantValidationException;
-import com.facturador.hacienda.HaciendaTokenService;
 import com.facturador.storage.EncryptionService;
 import com.facturador.tenant.mapper.TenantMapper;
+import com.facturador.tenant.model.Tenant;
+import com.facturador.tenant.model.Tenant.Environment;
+import com.facturador.tenant.repository.TenantRepository;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import org.springframework.stereotype.Service;

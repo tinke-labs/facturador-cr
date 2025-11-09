@@ -1,8 +1,8 @@
 package com.facturador.xml;
 
-import com.facturador.invoice.Invoice;
-import com.facturador.invoice.InvoiceItem;
-import com.facturador.invoice.InvoiceTax;
+import com.facturador.invoice.model.Invoice;
+import com.facturador.invoice.model.InvoiceItem;
+import com.facturador.invoice.model.InvoiceTax;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;

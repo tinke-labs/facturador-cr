@@ -1,4 +1,4 @@
-package com.facturador.invoice;
+package com.facturador.invoice.service;
 
 import com.facturador.hacienda.HaciendaClient;
 import com.facturador.hacienda.HaciendaTokenService;
@@ -6,10 +6,18 @@ import com.facturador.hacienda.dto.HaciendaStatusResponse;
 import com.facturador.hacienda.dto.HaciendaSubmissionResponse;
 import com.facturador.invoice.dto.CreateInvoiceRequest;
 import com.facturador.invoice.dto.InvoiceResponse;
+import com.facturador.invoice.model.HaciendaResponse;
+import com.facturador.invoice.model.Invoice;
+import com.facturador.invoice.model.InvoiceItem;
+import com.facturador.invoice.model.InvoiceTax;
+import com.facturador.invoice.repository.HaciendaResponseRepository;
+import com.facturador.invoice.repository.InvoiceRepository;
+import com.facturador.invoice.util.ClaveGenerator;
 import com.facturador.storage.FileUtils;
-import com.facturador.tenant.Tenant;
-import com.facturador.tenant.TenantRepository;
-import com.facturador.tenant.TenantContext;
+import com.facturador.storage.DocumentStorageService;
+import com.facturador.tenant.context.TenantContext;
+import com.facturador.tenant.model.Tenant;
+import com.facturador.tenant.repository.TenantRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import org.springframework.stereotype.Service;
@@ -23,7 +31,7 @@ public class InvoiceService {
     private final ClaveGenerator claveGenerator;
     private final com.facturador.xml.XmlInvoiceGenerator xmlInvoiceGenerator;
     private final com.facturador.xml.XmlSigner xmlSigner;
-    private final com.facturador.storage.DocumentStorageService documentStorageService;
+    private final DocumentStorageService documentStorageService;
     private final HaciendaClient haciendaClient;
     private final HaciendaTokenService haciendaTokenService;
     private final TenantRepository tenantRepository;
@@ -33,7 +41,7 @@ public class InvoiceService {
                           ClaveGenerator claveGenerator,
                           com.facturador.xml.XmlInvoiceGenerator xmlInvoiceGenerator,
                           com.facturador.xml.XmlSigner xmlSigner,
-                          com.facturador.storage.DocumentStorageService documentStorageService,
+                          DocumentStorageService documentStorageService,
                           HaciendaClient haciendaClient,
                           HaciendaTokenService haciendaTokenService,
                           TenantRepository tenantRepository) {

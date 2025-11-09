@@ -1,6 +1,6 @@
 package com.facturador.hacienda;
 
-import com.facturador.tenant.Tenant;
+import com.facturador.tenant.model.Tenant;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;

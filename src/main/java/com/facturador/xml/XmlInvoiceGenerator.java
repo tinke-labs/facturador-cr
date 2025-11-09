@@ -1,6 +1,6 @@
 package com.facturador.xml;
 
-import com.facturador.invoice.Invoice;
+import com.facturador.invoice.model.Invoice;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;

@@ -1,6 +1,6 @@
-package com.facturador.invoice;
+package com.facturador.invoice.model;
 
-import com.facturador.tenant.Tenant;
+import com.facturador.tenant.model.Tenant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

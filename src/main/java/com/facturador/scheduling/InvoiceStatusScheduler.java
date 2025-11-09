@@ -1,8 +1,8 @@
 package com.facturador.scheduling;
 
-import com.facturador.invoice.Invoice;
-import com.facturador.invoice.InvoiceRepository;
-import com.facturador.invoice.InvoiceService;
+import com.facturador.invoice.model.Invoice;
+import com.facturador.invoice.repository.InvoiceRepository;
+import com.facturador.invoice.service.InvoiceService;
 import java.util.List;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
