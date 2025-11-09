@@ -1,8 +1,8 @@
-package com.facturador.invoice.controller;
+package com.facturador.controllers;
 
-import com.facturador.invoice.service.InvoiceService;
-import com.facturador.invoice.dto.CreateInvoiceRequest;
-import com.facturador.invoice.dto.InvoiceResponse;
+import com.facturador.dto.invoice.CreateInvoiceRequest;
+import com.facturador.dto.invoice.InvoiceResponse;
+import com.facturador.services.InvoiceService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

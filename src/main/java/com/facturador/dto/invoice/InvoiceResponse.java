@@ -1,4 +1,4 @@
-package com.facturador.invoice.dto;
+package com.facturador.dto.invoice;
 
 import java.time.OffsetDateTime;
 

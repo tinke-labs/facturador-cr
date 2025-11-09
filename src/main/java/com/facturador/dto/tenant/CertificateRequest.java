@@ -1,4 +1,4 @@
-package com.facturador.tenant.dto;
+package com.facturador.dto.tenant;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

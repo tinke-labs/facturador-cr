@@ -1,7 +1,7 @@
 package com.facturador.tenant.mapper;
 
-import com.facturador.tenant.model.Tenant;
-import com.facturador.tenant.dto.TenantResponse;
+import com.facturador.dto.tenant.TenantResponse;
+import com.facturador.models.tenant.Tenant;
 import org.springframework.stereotype.Component;
 
 @Component

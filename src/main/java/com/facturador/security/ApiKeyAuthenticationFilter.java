@@ -1,8 +1,8 @@
 package com.facturador.security;
 
+import com.facturador.models.tenant.Tenant;
+import com.facturador.services.TenantService;
 import com.facturador.tenant.context.TenantContext;
-import com.facturador.tenant.model.Tenant;
-import com.facturador.tenant.service.TenantService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

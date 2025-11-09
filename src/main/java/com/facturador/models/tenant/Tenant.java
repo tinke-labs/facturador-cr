@@ -1,4 +1,4 @@
-package com.facturador.tenant.model;
+package com.facturador.models.tenant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

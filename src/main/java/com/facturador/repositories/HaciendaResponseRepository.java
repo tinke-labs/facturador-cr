@@ -1,6 +1,6 @@
-package com.facturador.invoice.repository;
+package com.facturador.repositories;
 
-import com.facturador.invoice.model.HaciendaResponse;
+import com.facturador.models.invoice.HaciendaResponse;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

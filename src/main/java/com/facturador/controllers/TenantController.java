@@ -1,8 +1,8 @@
-package com.facturador.tenant.controller;
+package com.facturador.controllers;
 
-import com.facturador.tenant.service.TenantService;
-import com.facturador.tenant.dto.CertificateRequest;
-import com.facturador.tenant.dto.TenantResponse;
+import com.facturador.dto.tenant.CertificateRequest;
+import com.facturador.dto.tenant.TenantResponse;
+import com.facturador.services.TenantService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
