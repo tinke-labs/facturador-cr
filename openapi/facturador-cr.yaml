@@ -1,0 +1,1731 @@
+openapi: 3.0.3
+info:
+  title: Facturador CR API
+  version: 1.0.0
+  description: |
+    API de microservicio para la plataforma de facturación electrónica basada en el proyecto PHP de **facturador-cr**.
+    La especificación consolida los módulos existentes (`users`, `facturador`, `companny_user`) y los alinea con la
+    estructura de comprobantes electrónicos versión 4.4 de la Dirección General de Tributación de Costa Rica.
+    
+    Los recursos expuestos permiten administrar usuarios maestros y de compañía, configurar datos de la empresa,
+    mantener catálogos territoriales, gestionar receptores (clientes), inventario, consecutivos y vouchers de
+    comprobantes electrónicos, así como almacenar los comprobantes en la base de datos tal y como lo hace el
+    módulo `facturadorCRLibre.php` del proyecto original.
+  contact:
+    name: CRLibre
+    url: https://crlibre.org
+servers:
+  - url: https://api.facturador.local/v1
+    description: Entorno de desarrollo
+  - url: https://api.facturador-cr.com/v1
+    description: Entorno de producción
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+tags:
+  - name: AdminAuth
+    description: Autenticación y gestión de usuarios maestros (módulo `users`).
+  - name: CompanyAuth
+    description: Autenticación y gestión de usuarios de compañía (módulo `companny_user`).
+  - name: CompanyConfiguration
+    description: Configuración general de empresas, credenciales y parámetros de Hacienda.
+  - name: MasterData
+    description: Copia de tablas maestras, consecutivos y respaldos.
+  - name: Catalogs
+    description: Catálogos oficiales (provincias, cantones, impuestos, unidades, tipos de identificación).
+  - name: Customers
+    description: Receptores y contactos asociados a la empresa emisora.
+  - name: Inventory
+    description: Inventario y productos almacenados por sucursal y terminal.
+  - name: Vouchers
+    description: Gestión de comprobantes electrónicos (facturas, notas, tiquetes, recibos).
+  - name: Logs
+    description: Bitácoras e integraciones auxiliares.
+paths:
+  /auth/admin/login:
+    post:
+      tags: [AdminAuth]
+      summary: Iniciar sesión de administrador
+      description: |
+        Equivale a la acción `users_logMeIn` del módulo `users` y entrega el `sessionKey` generado por
+        `users_generateSessionKey` para los usuarios maestros registrados en la tabla `sessions`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+            examples:
+              default:
+                value:
+                  userName: admin@example.com
+                  password: S3guro!2024
+      responses:
+        '200':
+          description: Sesión creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSession'
+              examples:
+                default:
+                  value:
+                    token: "b64:AAEb..."
+                    user:
+                      id: 12
+                      userName: admin@example.com
+        '401':
+          description: Credenciales inválidas (`ERROR_USERS_WRONG_LOGIN_INFO`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                wrongCredentials:
+                  value:
+                    code: -301
+                    message: "Credenciales incorrectas"
+  /auth/admin/logout:
+    post:
+      tags: [AdminAuth]
+      summary: Cerrar sesión de administrador
+      description: Ejecuta la acción `users_logMeOut`, eliminando la sesión activa del usuario maestro.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Sesión cerrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "good bye"
+  /auth/admin/register:
+    post:
+      tags: [AdminAuth]
+      summary: Registrar un usuario maestro
+      description: Registra un nuevo usuario en el módulo `users` (`users_registerNew`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserCreateRequest'
+      responses:
+        '201':
+          description: Usuario maestro creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+        '409':
+          description: Usuario ya existe (`ERROR_USERS_EXISTS`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/company/login:
+    post:
+      tags: [CompanyAuth]
+      summary: Iniciar sesión de usuario de compañía
+      description: |
+        Autentica usuarios específicos de una empresa (`companny_users_logMeIn`) utilizando las tablas
+        `{idMasterUser}_master_users` y `{idMasterUser}_master_sessions`. Devuelve el `sessionKey` asociado al
+        usuario de compañía, el mismo que valida `confirmSessionKey` en las operaciones protegidas.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyLoginRequest'
+      responses:
+        '200':
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySession'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/company/logout:
+    post:
+      tags: [CompanyAuth]
+      summary: Cerrar sesión de usuario de compañía
+      description: Ejecuta `companny_users_logMeOut`, eliminando el registro correspondiente de `{idMasterUser}_master_sessions`.
+      security:
+        - CompanySessionAuth: []
+      responses:
+        '200':
+          description: Sesión cerrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "good bye"
+  /auth/company/register:
+    post:
+      tags: [CompanyAuth]
+      summary: Registrar un usuario de compañía
+      description: Inserta un nuevo usuario en `{idMasterUser}_master_users` a través de `companny_users_registerNew`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUserCreateRequest'
+      responses:
+        '201':
+          description: Usuario de compañía creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUser'
+        '409':
+          description: Usuario existente (`ERROR_USERS_EXISTS`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /company/{companyId}:
+    get:
+      tags: [CompanyConfiguration]
+      summary: Obtener configuración general de la empresa
+      description: |
+        Consulta los valores almacenados en `{idMasterUser}_master_config_companny` mediante `getCompannyInformation`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Datos de la empresa emisora
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyProfile'
+    put:
+      tags: [CompanyConfiguration]
+      summary: Actualizar información comercial de la empresa
+      description: Ejecuta `compannyUpdateInformation` para modificar nombre, correo, identificación y teléfonos.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyProfileUpdateRequest'
+      responses:
+        '204':
+          description: Información actualizada
+  /company/{companyId}/location:
+    patch:
+      tags: [CompanyConfiguration]
+      summary: Actualizar la ubicación fiscal
+      description: Modifica provincia, cantón, distrito, barrio y señas con `compannyUpdateLocation`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyLocationUpdate'
+      responses:
+        '204':
+          description: Ubicación actualizada
+  /company/{companyId}/exchange-rate:
+    patch:
+      tags: [CompanyConfiguration]
+      summary: Actualizar el tipo de cambio
+      description: Usa `compannyUpdateTipoCambio` para establecer el valor de `TIPOCAMBIO`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeRateUpdate'
+      responses:
+        '204':
+          description: Tipo de cambio actualizado
+  /company/{companyId}/environment:
+    get:
+      tags: [CompanyConfiguration]
+      summary: Consultar ambiente activo de Hacienda
+      description: Retorna el valor de `ENV` (stag o prod) consultando `companyGetEnv`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Ambiente actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentStatus'
+    patch:
+      tags: [CompanyConfiguration]
+      summary: Cambiar ambiente de Hacienda
+      description: Actualiza `ENV` con `companyChangeEnv`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvironmentUpdate'
+      responses:
+        '204':
+          description: Ambiente actualizado
+  /company/{companyId}/credentials/staging:
+    get:
+      tags: [CompanyConfiguration]
+      summary: Obtener credenciales de staging
+      description: Consulta `getStagCompannyCredentials` para recuperar usuario, contraseña, PIN y código P12.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Credenciales staging
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HaciendaCredentials'
+    put:
+      tags: [CompanyConfiguration]
+      summary: Actualizar credenciales de staging
+      description: Actualiza registros con `companyStagUsers`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HaciendaCredentialsUpdate'
+      responses:
+        '204':
+          description: Credenciales actualizadas
+  /company/{companyId}/credentials/production:
+    get:
+      tags: [CompanyConfiguration]
+      summary: Obtener credenciales de producción
+      description: Consulta `getProdCompannyCredentials`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Credenciales producción
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HaciendaCredentials'
+    put:
+      tags: [CompanyConfiguration]
+      summary: Actualizar credenciales de producción
+      description: Actualiza registros con `companyProdUsers`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HaciendaCredentialsUpdate'
+      responses:
+        '204':
+          description: Credenciales actualizadas
+  /master-data/copy:
+    post:
+      tags: [MasterData]
+      summary: Copiar tablas maestras al espacio del usuario
+      description: Invoca `copyMasterTables` para clonar todas las tablas `master_*` al espacio `{idUser}_*`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionKey:
+                  type: string
+                  description: Sesión activa del usuario maestro que gatilla la copia.
+      responses:
+        '202':
+          description: Copia en proceso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tables:
+                    type: array
+                    items:
+                      type: string
+  /master-data/{companyId}/consecutives:
+    post:
+      tags: [MasterData]
+      summary: Inicializar consecutivos para un usuario de compañía
+      description: Ejecuta `companny_add_master_Consecutive` para generar consecutivos por tipo de comprobante y ambiente.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: integer
+      responses:
+        '201':
+          description: Consecutivos generados
+  /master-data/{companyId}/consecutives/{documentType}:
+    get:
+      tags: [MasterData]
+      summary: Consultar consecutivo máximo por tipo de documento
+      description: Usa `companny_getMyConsecutive` para recuperar el consecutivo actual en un ambiente dado.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - $ref: '#/components/parameters/DocumentTypeParam'
+        - in: query
+          name: env
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvironmentEnum'
+        - in: query
+          name: userName
+          required: true
+          schema:
+            type: string
+            description: Usuario de compañía dueño del consecutivo.
+      responses:
+        '200':
+          description: Consecutivo actual
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  consecutivo:
+                    type: integer
+    post:
+      tags: [MasterData]
+      summary: Incrementar consecutivo después de emitir un comprobante
+      description: Ejecuta `companny_updateConsecutive` para sumar 1 al consecutivo del usuario y tipo indicados.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - $ref: '#/components/parameters/DocumentTypeParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [env]
+              properties:
+                env:
+                  $ref: '#/components/schemas/EnvironmentEnum'
+      responses:
+        '204':
+          description: Consecutivo incrementado
+  /master-data/{companyId}/backup:
+    post:
+      tags: [MasterData]
+      summary: Ejecutar respaldo lógico
+      description: Invoca `backUpUser` para generar un volcado SQL de las tablas maestras del usuario.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '202':
+          description: Proceso de respaldo iniciado
+  /catalogs/provinces:
+    get:
+      tags: [Catalogs]
+      summary: Listar provincias
+      description: Consulta la tabla `codificacion_mh` mediante `getAllProvinces`.
+      responses:
+        '200':
+          description: Lista de provincias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Province'
+  /catalogs/provinces/{provinceId}/cantons:
+    get:
+      tags: [Catalogs]
+      summary: Listar cantones por provincia
+      description: Usa `getCantons`.
+      parameters:
+        - $ref: '#/components/parameters/ProvinceIdParam'
+      responses:
+        '200':
+          description: Cantones de la provincia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Canton'
+  /catalogs/provinces/{provinceId}/cantons/{cantonId}/districts:
+    get:
+      tags: [Catalogs]
+      summary: Listar distritos
+      description: Usa `getDistrict`.
+      parameters:
+        - $ref: '#/components/parameters/ProvinceIdParam'
+        - $ref: '#/components/parameters/CantonIdParam'
+      responses:
+        '200':
+          description: Distritos del cantón
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/District'
+  /catalogs/provinces/{provinceId}/cantons/{cantonId}/districts/{districtId}/neighborhoods:
+    get:
+      tags: [Catalogs]
+      summary: Listar barrios
+      description: Usa `getNeighborhood`.
+      parameters:
+        - $ref: '#/components/parameters/ProvinceIdParam'
+        - $ref: '#/components/parameters/CantonIdParam'
+        - $ref: '#/components/parameters/DistrictIdParam'
+      responses:
+        '200':
+          description: Barrios del distrito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Neighborhood'
+  /catalogs/id-types:
+    get:
+      tags: [Catalogs]
+      summary: Obtener tipos de identificación
+      description: Invoca `getTypeOfId` para consultar `tipo_cedula`.
+      responses:
+        '200':
+          description: Tipos de identificación
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CatalogEntry'
+  /catalogs/taxes:
+    get:
+      tags: [Catalogs]
+      summary: Obtener tipos de impuesto
+      description: Ejecuta `getTipoImpuesto` (requiere sesión de compañía).
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Catálogo de impuestos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxCatalogEntry'
+  /catalogs/units:
+    get:
+      tags: [Catalogs]
+      summary: Obtener unidades de medida
+      description: Ejecuta `getUnid` (requiere sesión de compañía).
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Catálogo de unidades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitCatalogEntry'
+  /company/{companyId}/branches:
+    get:
+      tags: [CompanyConfiguration]
+      summary: Listar sucursales
+      description: Ejecuta `getSucursales` usando el `sessionKey` del usuario maestro.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Sucursales registradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Branch'
+    post:
+      tags: [CompanyConfiguration]
+      summary: Crear sucursal
+      description: Inserta una sucursal mediante `addSucursales` y crea la tabla de inventario asociada.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchCreateRequest'
+      responses:
+        '201':
+          description: Sucursal creada
+  /company/{companyId}/branches/{branchId}/terminals:
+    get:
+      tags: [CompanyConfiguration]
+      summary: Listar terminales
+      description: Ejecuta `getTerminales`, filtrando opcionalmente por sucursal.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - $ref: '#/components/parameters/BranchIdParam'
+      responses:
+        '200':
+          description: Terminales disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Terminal'
+    post:
+      tags: [CompanyConfiguration]
+      summary: Crear terminal
+      description: Inserta un registro en `{idMasterUser}_master_terminales` mediante `addTerminal`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - $ref: '#/components/parameters/BranchIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminalCreateRequest'
+      responses:
+        '201':
+          description: Terminal creada
+  /company/{companyId}/users:
+    get:
+      tags: [CompanyAuth]
+      summary: Listar usuarios de compañía
+      description: Recupera usuarios con sus sucursales y terminales (`getUsersCompanny`).
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Usuarios registrados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanyUser'
+  /company/{companyId}/customers:
+    get:
+      tags: [Customers]
+      summary: Listar receptores activos
+      description: Ejecuta `getActiveReceiver`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      responses:
+        '200':
+          description: Receptores activos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Receiver'
+    post:
+      tags: [Customers]
+      summary: Registrar receptor
+      description: Inserta un cliente en `{idMasterUser}_master_receiver` (`addCompannyReciver`).
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiverCreateRequest'
+      responses:
+        '201':
+          description: Receptor creado
+  /company/{companyId}/customers/{receiverId}:
+    get:
+      tags: [Customers]
+      summary: Obtener receptor
+      description: Ejecuta `getReceiverById`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - $ref: '#/components/parameters/ReceiverIdParam'
+      responses:
+        '200':
+          description: Datos del receptor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receiver'
+    delete:
+      tags: [Customers]
+      summary: Desactivar receptor
+      description: Marca `estadoCliente = 0` utilizando `deleteReciver`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - $ref: '#/components/parameters/ReceiverIdParam'
+      responses:
+        '204':
+          description: Receptor desactivado
+  /company/{companyId}/inventory:
+    get:
+      tags: [Inventory]
+      summary: Listar inventario por sucursal
+      description: Ejecuta `getInventory`, almacenando consulta en `_master_logs`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - in: query
+          name: branchId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Productos disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItem'
+    post:
+      tags: [Inventory]
+      summary: Registrar producto en inventario
+      description: Inserta un producto en la tabla `{idMasterUser}_master_inventary_sucursal_{sucursal}` (`addInventaryProduct`).
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryItemCreateRequest'
+      responses:
+        '201':
+          description: Producto registrado
+  /company/{companyId}/inventory/by-code:
+    get:
+      tags: [Inventory]
+      summary: Buscar producto por código de barras
+      description: Usa `getProductByCode`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - in: query
+          name: branchId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductLookupResponse'
+  /company/{companyId}/vouchers:
+    get:
+      tags: [Vouchers]
+      summary: Listar vouchers por ambiente
+      description: Recupera registros de `{idMasterUser}_master_vouchers` (`getVouchers`).
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+        - in: query
+          name: env
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvironmentEnum'
+      responses:
+        '200':
+          description: Lista de comprobantes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VoucherSummary'
+    post:
+      tags: [Vouchers]
+      summary: Registrar comprobante emitido
+      description: Inserta un comprobante en `{idMasterUser}_master_vouchers` usando `companny_add_voucher`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoucherCreateRequest'
+            examples:
+              facturaElectronica:
+                summary: Factura electrónica con detalle y resumen
+                value:
+                  env: api-stag
+                  clave: "50631012300310112345600100001010000000011100000001"
+                  consecutivo: "00100001010000000011"
+                  documentType: FE
+                  receiverId: 45
+                  status: aceptado
+                  xmlBase64: "PHhtbD4uLi48L3htbD4="
+                  mhResponseBase64: null
+                  referenceVoucherId: null
+                  invoice:
+                    clave: "50631012300310112345600100001010000000011100000001"
+                    numeroConsecutivo: "00100001010000000011"
+                    fechaEmision: "2024-03-31T18:35:00-06:00"
+                    emisor:
+                      nombre: "CRLibre S.A."
+                      identificacion:
+                        tipo: "02"
+                        numero: "3101234567"
+                      nombreComercial: "CRLibre"
+                      ubicacion:
+                        provincia: "1"
+                        canton: "01"
+                        distrito: "08"
+                        barrio: "01"
+                        otrasSenas: "250 m oeste de Scotiabank"
+                      telefono:
+                        codigoPais: "506"
+                        numero: "64206205"
+                      correoElectronico: "factura@crlibre.org"
+                    receptor:
+                      nombre: "Cliente Demo"
+                      identificacion:
+                        tipo: "01"
+                        numero: "101010101"
+                      correoElectronico: "cliente@example.com"
+                    condicionVenta: "01"
+                    medioPago:
+                      - tipo: "01"
+                        monto: 8450.0
+                    detalle:
+                      - numeroLinea: 1
+                        codigoCabys: "0101010010200"
+                        cantidad: 2
+                        unidadMedida: "Sp"
+                        detalle: "Servicio profesional"
+                        precioUnitario: 4000
+                        montoTotal: 8000
+                        descuento:
+                          monto: 0
+                        subTotal: 8000
+                        impuestos:
+                          - codigo: "01"
+                            tarifa: 13
+                            monto: 1040
+                        totalLinea: 9040
+                    resumen:
+                      moneda:
+                        codigo: "CRC"
+                        tipoCambio: 1
+                      totalServGravados: 8000
+                      totalVenta: 8000
+                      totalVentaNeta: 8000
+                      totalImpuesto: 1040
+                      totalComprobante: 9040
+      responses:
+        '201':
+          description: Comprobante almacenado
+  /company/{companyId}/logs:
+    post:
+      tags: [Logs]
+      summary: Registrar mensaje en bitácora
+      description: Inserta un registro en `{idMasterUser}_master_logs` a través de `insertToLogTable`.
+      security:
+        - CompanySessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CompanyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payload]
+              properties:
+                payload:
+                  type: object
+                  description: Objeto arbitrario serializado a JSON antes de almacenarse.
+      responses:
+        '202':
+          description: Log encolado
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    CompanySessionAuth:
+      type: apiKey
+      in: header
+      name: X-Company-Session
+  parameters:
+    CompanyIdParam:
+      name: companyId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Identificador del `idMasterUser`.
+    BranchIdParam:
+      name: branchId
+      in: path
+      required: true
+      schema:
+        type: integer
+    ReceiverIdParam:
+      name: receiverId
+      in: path
+      required: true
+      schema:
+        type: integer
+    ProvinceIdParam:
+      name: provinceId
+      in: path
+      required: true
+      schema:
+        type: string
+    CantonIdParam:
+      name: cantonId
+      in: path
+      required: true
+      schema:
+        type: string
+    DistrictIdParam:
+      name: districtId
+      in: path
+      required: true
+      schema:
+        type: string
+    DocumentTypeParam:
+      name: documentType
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/DocumentTypeEnum'
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    AdminLoginRequest:
+      type: object
+      required: [userName, password]
+      properties:
+        userName:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AdminSession:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token de sesión (`sessionKey`).
+        user:
+          $ref: '#/components/schemas/AdminUser'
+    AdminUserCreateRequest:
+      type: object
+      required: [fullName, userName, email, password]
+      properties:
+        fullName:
+          type: string
+        userName:
+          type: string
+          description: Usuario único para iniciar sesión.
+        email:
+          type: string
+          format: email
+        about:
+          type: string
+          description: Información adicional.
+        country:
+          type: string
+          example: crc
+        password:
+          type: string
+          format: password
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        userName:
+          type: string
+        email:
+          type: string
+        fullName:
+          type: string
+    CompanyLoginRequest:
+      type: object
+      required: [companyId, userName, password]
+      properties:
+        companyId:
+          type: integer
+        userName:
+          type: string
+        password:
+          type: string
+          format: password
+    CompanySession:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: Valor `sessionKey` devuelto por `companny_users_generateSessionKey`.
+        user:
+          $ref: '#/components/schemas/CompanyUser'
+    CompanyUserCreateRequest:
+      type: object
+      required: [companyId, fullName, userName, email, password]
+      properties:
+        companyId:
+          type: integer
+        fullName:
+          type: string
+        userName:
+          type: string
+        email:
+          type: string
+          format: email
+        about:
+          type: string
+        country:
+          type: string
+        password:
+          type: string
+          format: password
+        terminalId:
+          type: integer
+          description: Id del terminal que se asignará en el campo `settings`.
+    CompanyUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        userName:
+          type: string
+        email:
+          type: string
+        terminal:
+          type: string
+        branch:
+          type: string
+    CompanyProfile:
+      type: object
+      properties:
+        name:
+          type: string
+        commercialName:
+          type: string
+        identificationType:
+          type: string
+        identificationNumber:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        fax:
+          type: string
+        countryCode:
+          type: string
+        environment:
+          $ref: '#/components/schemas/EnvironmentEnum'
+        exchangeRate:
+          type: number
+          format: float
+        address:
+          $ref: '#/components/schemas/Address'
+    CompanyProfileUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/CompanyProfile'
+    CompanyLocationUpdate:
+      type: object
+      required: [province, canton, district, neighborhood, otherDirections]
+      properties:
+        province:
+          type: string
+        canton:
+          type: string
+        district:
+          type: string
+        neighborhood:
+          type: string
+        otherDirections:
+          type: string
+    ExchangeRateUpdate:
+      type: object
+      required: [exchangeRate]
+      properties:
+        exchangeRate:
+          type: number
+          format: float
+    EnvironmentEnum:
+      type: string
+      enum: [api-stag, api-prod]
+    EnvironmentStatus:
+      type: object
+      properties:
+        environment:
+          $ref: '#/components/schemas/EnvironmentEnum'
+    EnvironmentUpdate:
+      type: object
+      required: [environment]
+      properties:
+        environment:
+          $ref: '#/components/schemas/EnvironmentEnum'
+    HaciendaCredentials:
+      type: object
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+        certificateCode:
+          type: string
+        pin:
+          type: string
+    HaciendaCredentialsUpdate:
+      type: object
+      required: [userName, password, certificateCode, pin]
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+        certificateCode:
+          type: string
+        pin:
+          type: string
+    Branch:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+    BranchCreateRequest:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    Terminal:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        branch:
+          type: string
+    TerminalCreateRequest:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    Receiver:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        identificationType:
+          type: string
+        identificationNumber:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+    ReceiverCreateRequest:
+      type: object
+      required:
+        - name
+        - identificationType
+        - identificationNumber
+        - province
+        - canton
+        - district
+        - neighborhood
+        - otherDirections
+      properties:
+        name:
+          type: string
+        commercialName:
+          type: string
+        identificationType:
+          type: string
+        identificationNumber:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        copyEmails:
+          type: string
+        fax:
+          type: string
+        province:
+          type: string
+        canton:
+          type: string
+        district:
+          type: string
+        neighborhood:
+          type: string
+        otherDirections:
+          type: string
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        unit:
+          type: string
+        salePrice:
+          type: number
+        available:
+          type: integer
+    InventoryItemCreateRequest:
+      type: object
+      required:
+        - name
+        - description
+        - unit
+        - salePrice
+        - taxId
+        - taxRate
+        - branchId
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        unit:
+          type: string
+        salePrice:
+          type: number
+        taxId:
+          type: integer
+        taxRate:
+          type: number
+        barcode:
+          type: string
+        available:
+          type: integer
+        branchId:
+          type: integer
+    ProductLookupResponse:
+      type: object
+      properties:
+        productId:
+          type: integer
+        description:
+          type: string
+        unit:
+          type: string
+        salePrice:
+          type: number
+        taxCode:
+          type: string
+        taxRate:
+          type: number
+    VoucherSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        consecutive:
+          type: string
+        clave:
+          type: string
+        documentType:
+          $ref: '#/components/schemas/DocumentTypeEnum'
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    VoucherCreateRequest:
+      type: object
+      required:
+        - env
+        - clave
+        - consecutivo
+        - documentType
+        - status
+        - xmlBase64
+        - invoice
+      properties:
+        env:
+          $ref: '#/components/schemas/EnvironmentEnum'
+        clave:
+          type: string
+        consecutivo:
+          type: string
+        documentType:
+          $ref: '#/components/schemas/DocumentTypeEnum'
+        receiverId:
+          type: integer
+        status:
+          type: string
+        xmlBase64:
+          type: string
+          description: XML firmado codificado en Base64.
+        mhResponseBase64:
+          type: string
+          nullable: true
+        referenceVoucherId:
+          type: integer
+          nullable: true
+        invoice:
+          $ref: '#/components/schemas/Invoice'
+    DocumentTypeEnum:
+      type: string
+      enum: [FE, NC, ND, TE, CCE, CPCE, RCEFE]
+    Invoice:
+      type: object
+      required:
+        - clave
+        - numeroConsecutivo
+        - fechaEmision
+        - emisor
+        - receptor
+        - condicionVenta
+        - detalle
+        - resumen
+      properties:
+        clave:
+          type: string
+        numeroConsecutivo:
+          type: string
+        fechaEmision:
+          type: string
+          format: date-time
+        emisor:
+          $ref: '#/components/schemas/InvoiceParty'
+        receptor:
+          $ref: '#/components/schemas/InvoiceParty'
+        condicionVenta:
+          type: string
+          description: Código según catálogo oficial (01 contado, 02 crédito, etc.).
+        condicionVentaOtros:
+          type: string
+        plazoCredito:
+          type: integer
+        medioPago:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoicePayment'
+        detalle:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceLine'
+        otrosCargos:
+          type: array
+          items:
+            type: object
+          nullable: true
+        resumen:
+          $ref: '#/components/schemas/InvoiceSummary'
+        referencias:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceReference'
+    InvoiceParty:
+      type: object
+      required:
+        - nombre
+        - identificacion
+        - ubicacion
+      properties:
+        nombre:
+          type: string
+        nombreComercial:
+          type: string
+        identificacion:
+          $ref: '#/components/schemas/InvoiceIdentification'
+        ubicacion:
+          $ref: '#/components/schemas/Address'
+        telefono:
+          $ref: '#/components/schemas/Phone'
+        fax:
+          $ref: '#/components/schemas/Phone'
+        correoElectronico:
+          type: string
+    InvoiceIdentification:
+      type: object
+      required: [tipo, numero]
+      properties:
+        tipo:
+          type: string
+        numero:
+          type: string
+    Address:
+      type: object
+      properties:
+        provincia:
+          type: string
+        canton:
+          type: string
+        distrito:
+          type: string
+        barrio:
+          type: string
+        otrasSenas:
+          type: string
+    Phone:
+      type: object
+      properties:
+        codigoPais:
+          type: string
+        numero:
+          type: string
+    InvoicePayment:
+      type: object
+      properties:
+        tipo:
+          type: string
+        detalle:
+          type: string
+        monto:
+          type: number
+    InvoiceLine:
+      type: object
+      required:
+        - numeroLinea
+        - codigoCabys
+        - cantidad
+        - unidadMedida
+        - detalle
+        - precioUnitario
+        - montoTotal
+        - subTotal
+        - totalLinea
+      properties:
+        numeroLinea:
+          type: integer
+        codigoCabys:
+          type: string
+        codigosComerciales:
+          type: array
+          items:
+            type: string
+        cantidad:
+          type: number
+        unidadMedida:
+          type: string
+        unidadMedidaComercial:
+          type: string
+        detalle:
+          type: string
+        precioUnitario:
+          type: number
+        montoTotal:
+          type: number
+        descuento:
+          type: object
+          properties:
+            monto:
+              type: number
+            naturaleza:
+              type: string
+        subTotal:
+          type: number
+        impuestos:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceTax'
+        otrosCargos:
+          type: array
+          items:
+            type: object
+        totalLinea:
+          type: number
+    InvoiceTax:
+      type: object
+      required: [codigo, tarifa, monto]
+      properties:
+        codigo:
+          type: string
+        codigoTarifa:
+          type: string
+        tarifa:
+          type: number
+        factorIVA:
+          type: number
+        monto:
+          type: number
+    InvoiceSummary:
+      type: object
+      required:
+        - moneda
+        - totalVenta
+        - totalVentaNeta
+        - totalImpuesto
+        - totalComprobante
+      properties:
+        moneda:
+          type: object
+          properties:
+            codigo:
+              type: string
+            tipoCambio:
+              type: number
+        totalServGravados:
+          type: number
+        totalServExentos:
+          type: number
+        totalServExonerado:
+          type: number
+        totalServNoSujeto:
+          type: number
+        totalMercanciasGravadas:
+          type: number
+        totalMercanciasExentas:
+          type: number
+        totalMercExonerada:
+          type: number
+        totalMercNoSujeta:
+          type: number
+        totalGravado:
+          type: number
+        totalExento:
+          type: number
+        totalExonerado:
+          type: number
+        totalNoSujeto:
+          type: number
+        totalVenta:
+          type: number
+        totalDescuentos:
+          type: number
+        totalVentaNeta:
+          type: number
+        totalDesgloseImpuesto:
+          type: array
+          items:
+            type: object
+            properties:
+              codigo:
+                type: string
+              codigoTarifaIVA:
+                type: string
+              monto:
+                type: number
+        totalImpuesto:
+          type: number
+        totalImpAsumido:
+          type: number
+        totalIvaDevuelto:
+          type: number
+        totalOtrosCargos:
+          type: number
+        medioPago:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoicePayment'
+        totalComprobante:
+          type: number
+    InvoiceReference:
+      type: object
+      properties:
+        tipoDocumento:
+          type: string
+        descripcion:
+          type: string
+        numero:
+          type: string
+        fecha:
+          type: string
+          format: date
+        codigo:
+          type: string
+        razon:
+          type: string
+    Province:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Canton:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    District:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Neighborhood:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    CatalogEntry:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+    TaxCatalogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        codigo:
+          type: string
+        descripcion:
+          type: string
+        tarifa:
+          type: number
+    UnitCatalogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        codigo:
+          type: string
+        descripcion:
+          type: string

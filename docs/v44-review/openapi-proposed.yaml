@@ -1,0 +1,618 @@
+openapi: 3.1.0
+info:
+  title: Facturador CR Microservicio (propuesta REST v4.4)
+  version: v1
+  description: |
+    Contrato objetivo alineado a las estructuras v4.4 de Hacienda y al dominio del facturador.
+servers:
+  - url: https://api.facturador.local/v1
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        identificationType:
+          type: string
+          enum: [01, 02, 03, 04, 05]
+        identificationNumber:
+          type: string
+        activityCode:
+          type: string
+          pattern: "^[0-9]{6}$"
+        haciendaCredentials:
+          type: object
+          properties:
+            clientId:
+              type: string
+            clientSecret:
+              type: string
+            username:
+              type: string
+    InvoiceRequest:
+      type: object
+      required: [clave, supplierCode, activityCodeIssuer, consecutive, issueDate, issuer, receiver, salesCondition, currency, lines, totals]
+      properties:
+        clave:
+          type: string
+          pattern: "^[0-9]{50}$"
+        supplierCode:
+          type: string
+          maxLength: 20
+        activityCodeIssuer:
+          type: string
+          pattern: "^[0-9]{6}$"
+        activityCodeReceiver:
+          type: string
+          pattern: "^[0-9]{6}$"
+        consecutive:
+          type: string
+        issueDate:
+          type: string
+          format: date-time
+        issuer:
+          type: object
+          required: [name, identification]
+          properties:
+            name:
+              type: string
+              maxLength: 100
+            commercialName:
+              type: string
+            identification:
+              type: object
+              required: [type, number]
+              properties:
+                type:
+                  type: string
+                  enum: [01, 02, 03, 04, 05]
+                number:
+                  type: string
+            location:
+              type: object
+              properties:
+                province:
+                  type: string
+                  pattern: "^[0-7]$"
+                canton:
+                  type: string
+                district:
+                  type: string
+                neighborhood:
+                  type: string
+                address:
+                  type: string
+                  maxLength: 250
+            phone:
+              type: object
+              properties:
+                countryCode:
+                  type: string
+                number:
+                  type: string
+            email:
+              type: string
+              format: email
+        receiver:
+          type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+            commercialName:
+              type: string
+            identification:
+              type: object
+              properties:
+                type:
+                  type: string
+                number:
+                  type: string
+            location:
+              $ref: '#/components/schemas/InvoiceRequest/properties/issuer/properties/location'
+            phone:
+              $ref: '#/components/schemas/InvoiceRequest/properties/issuer/properties/phone'
+            email:
+              type: string
+              format: email
+        salesCondition:
+          type: string
+          enum: ["01","02","03","04","05","06","07","08","09","10","11","99"]
+        salesConditionNote:
+          type: string
+        creditTerm:
+          type: integer
+        paymentMeans:
+          type: array
+          maxItems: 4
+          items:
+            type: object
+            required: [type]
+            properties:
+              type:
+                type: string
+                enum: ["01","02","03","04","05","06","07","99"]
+              amount:
+                type: number
+              description:
+                type: string
+        currency:
+          type: object
+          required: [code, exchangeRate]
+          properties:
+            code:
+              type: string
+            exchangeRate:
+              type: number
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            type: object
+            required: [cabysCode, quantity, unitOfMeasure, detail, unitPrice, subtotal, taxNet, totalLine]
+            properties:
+              cabysCode:
+                type: string
+                pattern: "^[0-9]{13}$"
+              commercialCodes:
+                type: array
+                maxItems: 5
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    code:
+                      type: string
+              quantity:
+                type: number
+                multipleOf: 0.001
+              unitOfMeasure:
+                type: string
+              detail:
+                type: string
+                maxLength: 200
+              discounts:
+                type: array
+                maxItems: 5
+                items:
+                  type: object
+                  properties:
+                    amount:
+                      type: number
+                    reason:
+                      type: string
+              unitPrice:
+                type: number
+              subtotal:
+                type: number
+              taxes:
+                type: array
+                items:
+                  type: object
+                  required: [code, rateCode, rate, amount]
+                  properties:
+                    code:
+                      type: string
+                      enum: ["01","02","03","04","05","06","07","08","12","13"]
+                    rateCode:
+                      type: string
+                    rate:
+                      type: number
+                    amount:
+                      type: number
+                    exemption:
+                      type: object
+                      properties:
+                        documentType:
+                          type: string
+                        documentNumber:
+                          type: string
+                        institution:
+                          type: string
+                        amount:
+                          type: number
+              taxNet:
+                type: number
+              totalLine:
+                type: number
+        references:
+          type: array
+          maxItems: 40
+          items:
+            type: object
+            required: [documentType, number, issueDate, code]
+            properties:
+              documentType:
+                type: string
+                enum: ["01","02","03","04","05","99"]
+              description:
+                type: string
+              number:
+                type: string
+              issueDate:
+                type: string
+                format: date-time
+              code:
+                type: string
+                enum: ["01","02","03","04","05","99"]
+              reason:
+                type: string
+        totals:
+          type: object
+          required: [totalSales, totalNetSales, totalTax, totalInvoice]
+          properties:
+            totalSales:
+              type: number
+            totalDiscounts:
+              type: number
+            totalNetSales:
+              type: number
+            taxBreakdown:
+              type: array
+              items:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  rateCode:
+                    type: string
+                  amount:
+                    type: number
+            totalTax:
+              type: number
+            totalOtherCharges:
+              type: number
+            totalInvoice:
+              type: number
+    InvoiceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        clave:
+          type: string
+        xmlUnsigned:
+          type: string
+          format: byte
+        xmlSigned:
+          type: string
+          format: byte
+        status:
+          type: string
+          enum: [draft, signed, sent, accepted, rejected]
+paths:
+  /auth/login:
+    post:
+      summary: Autenticación de usuarios del microservicio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Token JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+  /companies:
+    post:
+      summary: Registrar empresa emisora
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+      responses:
+        '201':
+          description: Empresa creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+    get:
+      summary: Listar empresas
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Empresas registradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+  /companies/{companyId}/invoices:
+    post:
+      summary: Registrar factura electrónica (borrador)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceRequest'
+      responses:
+        '201':
+          description: Factura generada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+    get:
+      summary: Listar facturas de la empresa
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Colección de facturas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvoiceResponse'
+  /companies/{companyId}/invoices/{invoiceId}/sign:
+    post:
+      summary: Firmar factura con certificado de la empresa
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Factura firmada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+  /companies/{companyId}/invoices/{invoiceId}/send:
+    post:
+      summary: Enviar factura a Hacienda
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Recepción aceptada para procesamiento
+  /companies/{companyId}/invoices/{invoiceId}/status:
+    get:
+      summary: Consultar estado en Hacienda
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estado actualizado (aceptado/rechazado)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [pending, accepted, rejected]
+                  rawResponse:
+                    type: string
+  /companies/{companyId}/receipts:
+    post:
+      summary: Registrar Recibo Electrónico de Pago
+      description: API dedicada al nuevo comprobante v4.4.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clave, supplierCode, consecutive, issueDate, receiver, paymentLines]
+              properties:
+                clave:
+                  type: string
+                supplierCode:
+                  type: string
+                consecutive:
+                  type: string
+                issueDate:
+                  type: string
+                  format: date-time
+                receiver:
+                  $ref: '#/components/schemas/InvoiceRequest/properties/receiver'
+                paymentLines:
+                  type: array
+                  minItems: 1
+                  maxItems: 1000
+                  items:
+                    type: object
+                    required: [detail, amount, subtotal, taxNet, totalLine]
+                    properties:
+                      detail:
+                        type: string
+                      amount:
+                        type: number
+                      subtotal:
+                        type: number
+                      taxes:
+                        $ref: '#/components/schemas/InvoiceRequest/properties/lines/items/properties/taxes'
+                      taxNet:
+                        type: number
+                      totalLine:
+                        type: number
+                totals:
+                  type: object
+                  required: [totalSales, totalNetSales, totalTax, totalInvoice]
+                  properties:
+                    totalSales:
+                      type: number
+                    totalNetSales:
+                      type: number
+                    totalTax:
+                      type: number
+                    paymentMeans:
+                      type: array
+                      maxItems: 4
+                      items:
+                        type: object
+                        required: [type, amount]
+                        properties:
+                          type:
+                            type: string
+                            enum: ["01","02","03","04","05","06","07","99"]
+                          amount:
+                            type: number
+                references:
+                  type: array
+                  maxItems: 10
+                  items:
+                    type: object
+                    required: [documentType, number, issueDate, code]
+                    properties:
+                      documentType:
+                        type: string
+                        enum: ["01","02","04","05","99"]
+                      number:
+                        type: string
+                      issueDate:
+                        type: string
+                        format: date-time
+                      code:
+                        type: string
+                        enum: ["01","02","04","05","99"]
+                      reason:
+                        type: string
+      responses:
+        '201':
+          description: Recibo creado
+  /companies/{companyId}/messages:
+    post:
+      summary: Registrar y enviar Mensaje Receptor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clave, receiverActivityCode, totalInvoice, message]
+              properties:
+                clave:
+                  type: string
+                emitterIdentification:
+                  type: object
+                  required: [type, number]
+                  properties:
+                    type:
+                      type: string
+                    number:
+                      type: string
+                receiverIdentification:
+                  type: object
+                  required: [type, number]
+                  properties:
+                    type:
+                      type: string
+                    number:
+                      type: string
+                issueDate:
+                  type: string
+                  format: date-time
+                message:
+                  type: string
+                  enum: ["1","2","3"]
+                detail:
+                  type: string
+                taxes:
+                  type: number
+                totalInvoice:
+                  type: number
+      responses:
+        '201':
+          description: Mensaje registrado y enviado
+security:
+  - BearerAuth: []

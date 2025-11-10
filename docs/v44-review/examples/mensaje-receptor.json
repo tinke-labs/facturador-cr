@@ -1,0 +1,12 @@
+{
+    "Clave": "50620240203999999999900100001010000000001100000011",
+    "NumeroCedulaEmisor": "003101234567",
+    "FechaEmisionDoc": "2024-02-07T12:05:00",
+    "Mensaje": "1",
+    "DetalleMensaje": "Aceptación total",
+    "MontoTotalImpuesto": "13.00",
+    "CodigoActividad": "551001",
+    "TotalFactura": "1130.00",
+    "NumeroCedulaReceptor": "003109876543",
+    "NumeroConsecutivoReceptor": "00100001010000000011"
+}

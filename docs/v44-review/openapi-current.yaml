@@ -1,0 +1,385 @@
+openapi: 3.1.0
+info:
+  title: Facturador CR RPC API (estado actual)
+  version: v1
+  description: |
+    Contrato derivado de los módulos PHP actuales (`api/modules`, `api/contrib`).
+    Cada operación real se invoca sobre `POST /api.php` usando parámetros `w` (módulo) y `r` (acción).
+servers:
+  - url: https://{host}/api.php
+    variables:
+      host:
+        default: api.demo.crlibre.org
+components:
+  securitySchemes:
+    SessionKey:
+      type: apiKey
+      name: sessionKey
+      in: header
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+paths:
+  /rpc/users/login:
+    post:
+      summary: Iniciar sesión de administrador
+      description: Equivale a `w=users&r=users_log_me_in`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userName, pwd]
+              properties:
+                userName:
+                  type: string
+                pwd:
+                  type: string
+      responses:
+        '200':
+          description: Sesión creada (`sessionKey`)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionKey:
+                    type: string
+        '401':
+          description: Credenciales inválidas (`ERROR_USERS_WRONG_LOGIN_INFO`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /rpc/token/password:
+    post:
+      summary: Obtener token OAuth password
+      description: Invoca `w=token&r=token&grant_type=password` contra el IdP de Hacienda.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, username, password]
+              properties:
+                client_id:
+                  type: string
+                  enum: [api-stag, api-prod]
+                client_secret:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Token JWT emitido por Hacienda
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+  /rpc/token/refresh:
+    post:
+      summary: Refrescar token OAuth
+      description: Invoca `grant_type=refresh_token`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, refresh_token]
+              properties:
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refrescado
+  /rpc/clave:
+    post:
+      summary: Generar clave numérica de comprobante
+      description: `w=clave&r=clave`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tipoDocumento, tipoCedula, cedula, consecutivo, situacion, codigoSeguridad]
+              properties:
+                tipoDocumento:
+                  type: string
+                tipoCedula:
+                  type: string
+                cedula:
+                  type: string
+                codigoPais:
+                  type: string
+                consecutivo:
+                  type: string
+                situacion:
+                  type: string
+                codigoSeguridad:
+                  type: string
+      responses:
+        '200':
+          description: Clave generada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clave:
+                    type: string
+  /rpc/gen-xml/factura:
+    post:
+      summary: Generar Factura Electrónica v4.4
+      description: `w=genXML&r=gen_xml_fe` (usa JSON para detalle, medios de pago, referencias).
+      security:
+        - SessionKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clave, proveedor_sistemas, codigo_actividad_emisor, consecutivo, fecha_emision, emisor_nombre, receptor_nombre, condicion_venta, cod_moneda, total_ventas, total_ventas_neta, total_comprobante, detalles]
+              properties:
+                clave:
+                  type: string
+                proveedor_sistemas:
+                  type: string
+                codigo_actividad_emisor:
+                  type: string
+                codigo_actividad_receptor:
+                  type: string
+                consecutivo:
+                  type: string
+                fecha_emision:
+                  type: string
+                  format: date-time
+                emisor_nombre:
+                  type: string
+                receptor_nombre:
+                  type: string
+                condicion_venta:
+                  type: string
+                medios_pago:
+                  type: array
+                  items:
+                    type: object
+                cod_moneda:
+                  type: string
+                total_ventas:
+                  type: string
+                total_ventas_neta:
+                  type: string
+                total_comprobante:
+                  type: string
+                detalles:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: XML base64 sin firmar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clave:
+                    type: string
+                  xml:
+                    type: string
+                    format: byte
+  /rpc/gen-xml/nota-credito:
+    post:
+      summary: Generar Nota de Crédito Electrónica v4.4
+      description: `w=genXML&r=gen_xml_nc`.
+      security:
+        - SessionKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/paths/~1rpc~1gen-xml~1factura/post/requestBody/content/application~1json/schema'
+      responses:
+        '200':
+          description: XML base64
+  /rpc/gen-xml/nota-debito:
+    post:
+      summary: Generar Nota de Débito Electrónica
+      description: `w=genXML&r=gen_xml_nd`.
+      security:
+        - SessionKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/paths/~1rpc~1gen-xml~1factura/post/requestBody/content/application~1json/schema'
+      responses:
+        '200':
+          description: XML base64
+  /rpc/gen-xml/tiquete:
+    post:
+      summary: Generar Tiquete Electrónico
+      description: `w=genXML&r=gen_xml_te`.
+      security:
+        - SessionKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/paths/~1rpc~1gen-xml~1factura/post/requestBody/content/application~1json/schema'
+      responses:
+        '200':
+          description: XML base64
+  /rpc/gen-xml/mensaje-receptor:
+    post:
+      summary: Generar Mensaje Receptor
+      description: `w=genXML&r=gen_xml_mr`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clave, numero_cedula_emisor, numero_cedula_receptor, fecha_emision_doc, mensaje, total_factura, numero_consecutivo_receptor]
+              properties:
+                codigo_actividad:
+                  type: string
+                monto_total_impuesto:
+                  type: string
+      responses:
+        '200':
+          description: XML base64
+  /rpc/gen-xml/factura-compra:
+    post:
+      summary: Generar Factura Electrónica de Compra
+      description: `w=genXML&r=gen_xml_fec`.
+      security:
+        - SessionKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/paths/~1rpc~1gen-xml~1factura/post/requestBody/content/application~1json/schema'
+      responses:
+        '200':
+          description: XML base64
+  /rpc/gen-xml/factura-exportacion:
+    post:
+      summary: Generar Factura Electrónica de Exportación
+      description: `w=genXML&r=gen_xml_fee`.
+      security:
+        - SessionKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/paths/~1rpc~1gen-xml~1factura/post/requestBody/content/application~1json/schema'
+      responses:
+        '200':
+          description: XML base64
+  /rpc/make-json:
+    post:
+      summary: Construir JSON para envío Hacienda
+      description: `w=makeJson&r=makeJson` empaqueta `comprobanteXml` base64 y metadatos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clave, fecha, emi_tipoIdentificacion, recp_tipoIdentificacion, recp_numeroIdentificacion, comprobanteXml]
+      responses:
+        '200':
+          description: JSON listo para API de Hacienda
+  /rpc/sign:
+    post:
+      summary: Firmar XML con certificado P12
+      description: `w=signXML&r=signFE` usa `p12Url`, `pinP12`, `inXml`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [p12Url, pinP12, inXml]
+      responses:
+        '200':
+          description: XML firmado en base64
+  /rpc/send/comprobante:
+    post:
+      summary: Enviar comprobante a Hacienda
+      description: `w=send&r=send` utiliza token y JSON de recepción.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, token, clave, fecha, emi_tipoIdentificacion, emi_numeroIdentificacion, comprobanteXml]
+              properties:
+                recp_tipoIdentificacion:
+                  type: string
+                recp_numeroIdentificacion:
+                  type: string
+                callbackUrl:
+                  type: string
+      responses:
+        '200':
+          description: Respuesta HTTP de Hacienda (raw headers/body)
+  /rpc/send/mensaje:
+    post:
+      summary: Enviar mensaje receptor firmado
+      description: `w=send&r=sendMensaje`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, token, clave, fecha, emi_tipoIdentificacion, emi_numeroIdentificacion, recp_tipoIdentificacion, recp_numeroIdentificacion, consecutivoReceptor, comprobanteXml]
+      responses:
+        '200':
+          description: Respuesta HTTP de Hacienda
+  /rpc/consultar:
+    post:
+      summary: Consultar estado de comprobante
+      description: `w=consultar&r=consultar` consulta API `/recepcion/v1/recepcion/`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, token, clave]
+              properties:
+                fecha:
+                  type: string
+      responses:
+        '200':
+          description: Estado devuelto por Hacienda
