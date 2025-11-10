@@ -1,0 +1,65 @@
+{
+    "Clave": "50620240203999999999900100001010000000001100000011",
+    "ProveedorSistemas": "CRLibre Demo",
+    "NumeroConsecutivo": "00100001010000000011",
+    "FechaEmision": "2024-02-07T12:10:00",
+    "Emisor": {
+        "Nombre": "Empresa Demo S.A.",
+        "Identificacion": {
+            "Tipo": "02",
+            "Numero": "3101234567"
+        },
+        "CorreoElectronico": "facturacion@demo.cr"
+    },
+    "Receptor": {
+        "Nombre": "Cliente Ejemplo Ltda",
+        "Identificacion": {
+            "Tipo": "02",
+            "Numero": "3109876543"
+        },
+        "CorreoElectronico": "compras@cliente.cr"
+    },
+    "CondicionVenta": "09",
+    "DetalleServicio": {
+        "LineaDetalle": {
+            "NumeroLinea": "1",
+            "Detalle": "Pago recibido por servicio",
+            "MontoTotal": "1130.00",
+            "SubTotal": "1000.00",
+            "Impuesto": {
+                "Codigo": "01",
+                "CodigoTarifaIVA": "08",
+                "Tarifa": "13.00",
+                "Monto": "130.00"
+            },
+            "ImpuestoNeto": "130.00",
+            "MontoTotalLinea": "1130.00"
+        }
+    },
+    "ResumenFactura": {
+        "CodigoTipoMoneda": {
+            "CodigoMoneda": "CRC",
+            "TipoCambio": "1.00"
+        },
+        "TotalVenta": "1000.00",
+        "TotalVentaNeta": "1000.00",
+        "TotalDesgloseImpuesto": {
+            "Codigo": "01",
+            "CodigoTarifaIVA": "08",
+            "TotalMontoImpuesto": "130.00"
+        },
+        "TotalImpuesto": "130.00",
+        "MedioPago": {
+            "TipoMedioPago": "01",
+            "TotalMedioPago": "1130.00"
+        },
+        "TotalComprobante": "1130.00"
+    },
+    "InformacionReferencia": {
+        "TipoDocIR": "01",
+        "Numero": "REF-REC-001",
+        "FechaEmisionIR": "2024-02-07T11:00:00",
+        "Codigo": "04",
+        "Razon": "Referencia recibo"
+    }
+}

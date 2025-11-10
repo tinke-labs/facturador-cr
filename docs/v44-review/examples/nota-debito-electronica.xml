@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NotaDebitoElectronica xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/notaDebitoElectronica" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Clave>50620240203999999999900100001010000000001100000011</Clave>
+  <ProveedorSistemas>CRLibre Demo</ProveedorSistemas>
+  <CodigoActividadEmisor>551001</CodigoActividadEmisor>
+  <CodigoActividadReceptor>551001</CodigoActividadReceptor>
+  <NumeroConsecutivo>00100001010000000011</NumeroConsecutivo>
+  <FechaEmision>2024-02-07T12:00:00</FechaEmision>
+  <Emisor>
+    <Nombre>Empresa Demo S.A.</Nombre>
+    <Identificacion>
+      <Tipo>02</Tipo>
+      <Numero>3101234567</Numero>
+    </Identificacion>
+    <NombreComercial>Demo Comercio</NombreComercial>
+    <Ubicacion>
+      <Provincia>1</Provincia>
+      <Canton>01</Canton>
+      <Distrito>01</Distrito>
+      <Barrio>00005</Barrio>
+      <OtrasSenas>Diagonal a plaza central</OtrasSenas>
+    </Ubicacion>
+    <CorreoElectronico>facturacion@demo.cr</CorreoElectronico>
+  </Emisor>
+  <Receptor>
+    <Nombre>Cliente Ejemplo Ltda</Nombre>
+    <Identificacion>
+      <Tipo>02</Tipo>
+      <Numero>3109876543</Numero>
+    </Identificacion>
+    <NombreComercial>Cliente Comercial</NombreComercial>
+    <Ubicacion>
+      <Provincia>2</Provincia>
+      <Canton>02</Canton>
+      <Distrito>05</Distrito>
+      <OtrasSenas>Costado oeste del parque, edificio azul</OtrasSenas>
+    </Ubicacion>
+    <Telefono>
+      <CodigoPais>506</CodigoPais>
+      <NumTelefono>88887777</NumTelefono>
+    </Telefono>
+    <CorreoElectronico>compras@cliente.cr</CorreoElectronico>
+  </Receptor>
+  <CondicionVenta>01</CondicionVenta>
+  <PlazoCredito>0</PlazoCredito>
+  <DetalleServicio>
+    <LineaDetalle>
+      <NumeroLinea>1</NumeroLinea>
+      <CodigoCABYS>0111010101000</CodigoCABYS>
+      <CodigoComercial>
+        <Tipo>01</Tipo>
+        <Codigo>SKU-001</Codigo>
+      </CodigoComercial>
+      <Cantidad>1</Cantidad>
+      <UnidadMedida>Unid</UnidadMedida>
+      <Detalle>Servicio profesional de consultoría</Detalle>
+      <PrecioUnitario>1000</PrecioUnitario>
+      <MontoTotal>1000</MontoTotal>
+      <SubTotal>1000</SubTotal>
+      <BaseImponible>1000</BaseImponible>
+      <Impuesto>
+        <Codigo>01</Codigo>
+        <CodigoTarifaIVA>08</CodigoTarifaIVA>
+        <Tarifa>13</Tarifa>
+        <Monto>130</Monto>
+      </Impuesto>
+      <ImpuestoAsumidoEmisorFabrica>0</ImpuestoAsumidoEmisorFabrica>
+      <ImpuestoNeto>130</ImpuestoNeto>
+      <MontoTotalLinea>1130</MontoTotalLinea>
+    </LineaDetalle>
+  </DetalleServicio>
+  <ResumenFactura>
+    <CodigoTipoMoneda>
+      <CodigoMoneda>CRC</CodigoMoneda>
+      <TipoCambio>1</TipoCambio>
+    </CodigoTipoMoneda>
+    <TotalServGravados>1000.00</TotalServGravados>
+    <TotalServExentos>0.00</TotalServExentos>
+    <TotalServExonerado>0.00</TotalServExonerado>
+    <TotalServNoSujeto>0.00</TotalServNoSujeto>
+    <TotalMercanciasGravadas>0.00</TotalMercanciasGravadas>
+    <TotalMercanciasExentas>0.00</TotalMercanciasExentas>
+    <TotalMercExonerada>0.00</TotalMercExonerada>
+    <TotalMercNoSujeta>0.00</TotalMercNoSujeta>
+    <TotalGravado>1000.00</TotalGravado>
+    <TotalExento>0.00</TotalExento>
+    <TotalExonerado>0.00</TotalExonerado>
+    <TotalNoSujeto>0.00</TotalNoSujeto>
+    <TotalVenta>1000.00</TotalVenta>
+    <TotalDescuentos>0.00</TotalDescuentos>
+    <TotalVentaNeta>1000.00</TotalVentaNeta>
+    <TotalDesgloseImpuesto>
+      <Codigo>01</Codigo>
+      <CodigoTarifaIVA>08</CodigoTarifaIVA>
+      <TotalMontoImpuesto>130</TotalMontoImpuesto>
+    </TotalDesgloseImpuesto>
+    <TotalImpuesto>130.00</TotalImpuesto>
+    <TotalImpAsumEmisorFabrica>0.00</TotalImpAsumEmisorFabrica>
+    <TotalIVADevuelto>0.00</TotalIVADevuelto>
+    <TotalOtrosCargos>0.00</TotalOtrosCargos>
+    <MedioPago>
+      <TipoMedioPago>01</TipoMedioPago>
+      <TotalMedioPago>1130.00</TotalMedioPago>
+    </MedioPago>
+    <TotalComprobante>1130.00</TotalComprobante>
+  </ResumenFactura>
+  <InformacionReferencia>
+    <TipoDocIR>99</TipoDocIR>
+    <Numero>REF-001</Numero>
+    <FechaEmisionIR>2024-01-01T12:00:00</FechaEmisionIR>
+    <Codigo>04</Codigo>
+    <Razon>Referencia informativa</Razon>
+  </InformacionReferencia>
+  <Otros/>
+  <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+    <ds:SignedInfo>
+      <ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+      <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+      <ds:Reference URI="">
+        <ds:Transforms>
+          <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+        </ds:Transforms>
+        <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+        <ds:DigestValue>AA==</ds:DigestValue>
+      </ds:Reference>
+    </ds:SignedInfo>
+    <ds:SignatureValue>AA==</ds:SignatureValue>
+    <ds:KeyInfo>
+      <ds:KeyValue>
+        <ds:RSAKeyValue>
+          <ds:Modulus>AA==</ds:Modulus>
+          <ds:Exponent>AQ==</ds:Exponent>
+        </ds:RSAKeyValue>
+      </ds:KeyValue>
+    </ds:KeyInfo>
+  </ds:Signature>
+</NotaDebitoElectronica>

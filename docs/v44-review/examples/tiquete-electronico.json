@@ -1,0 +1,113 @@
+{
+    "Clave": "50620240203999999999900100001010000000001100000011",
+    "ProveedorSistemas": "CRLibre Demo",
+    "CodigoActividadEmisor": "551001",
+    "NumeroConsecutivo": "00100001010000000011",
+    "FechaEmision": "2024-02-07T12:00:00",
+    "Emisor": {
+        "Nombre": "Empresa Demo S.A.",
+        "Identificacion": {
+            "Tipo": "02",
+            "Numero": "3101234567"
+        },
+        "NombreComercial": "Demo Comercio",
+        "Ubicacion": {
+            "Provincia": "1",
+            "Canton": "01",
+            "Distrito": "01",
+            "Barrio": "00005",
+            "OtrasSenas": "Diagonal a plaza central"
+        },
+        "CorreoElectronico": "facturacion@demo.cr"
+    },
+    "Receptor": {
+        "Nombre": "Consumidor final",
+        "Identificacion": {
+            "Tipo": "05",
+            "Numero": "000000000"
+        },
+        "NombreComercial": "Cliente Comercial",
+        "Ubicacion": {
+            "Provincia": "1",
+            "Canton": "01",
+            "Distrito": "01",
+            "OtrasSenas": "Sin direccion"
+        },
+        "Telefono": {
+            "CodigoPais": "506",
+            "NumTelefono": "22223333"
+        },
+        "CorreoElectronico": "sin-email@demo.cr"
+    },
+    "CondicionVenta": "01",
+    "PlazoCredito": "0",
+    "DetalleServicio": {
+        "LineaDetalle": {
+            "NumeroLinea": "1",
+            "CodigoCABYS": "0111010101000",
+            "CodigoComercial": {
+                "Tipo": "01",
+                "Codigo": "SKU-001"
+            },
+            "Cantidad": "1",
+            "UnidadMedida": "Unid",
+            "Detalle": "Servicio profesional de consultoría",
+            "PrecioUnitario": "1000",
+            "MontoTotal": "1000",
+            "SubTotal": "1000",
+            "BaseImponible": "1000",
+            "Impuesto": {
+                "Codigo": "01",
+                "CodigoTarifaIVA": "08",
+                "Tarifa": "13",
+                "Monto": "130"
+            },
+            "ImpuestoAsumidoEmisorFabrica": "0",
+            "ImpuestoNeto": "130",
+            "MontoTotalLinea": "1130"
+        }
+    },
+    "ResumenFactura": {
+        "CodigoTipoMoneda": {
+            "CodigoMoneda": "CRC",
+            "TipoCambio": "1"
+        },
+        "TotalServGravados": "1000.00",
+        "TotalServExentos": "0.00",
+        "TotalServExonerado": "0.00",
+        "TotalServNoSujeto": "0.00",
+        "TotalMercanciasGravadas": "0.00",
+        "TotalMercanciasExentas": "0.00",
+        "TotalMercExonerada": "0.00",
+        "TotalMercNoSujeta": "0.00",
+        "TotalGravado": "1000.00",
+        "TotalExento": "0.00",
+        "TotalExonerado": "0.00",
+        "TotalNoSujeto": "0.00",
+        "TotalVenta": "1000.00",
+        "TotalDescuentos": "0.00",
+        "TotalVentaNeta": "1000.00",
+        "TotalDesgloseImpuesto": {
+            "Codigo": "01",
+            "CodigoTarifaIVA": "08",
+            "TotalMontoImpuesto": "130"
+        },
+        "TotalImpuesto": "130.00",
+        "TotalImpAsumEmisorFabrica": "0.00",
+        "TotalIVADevuelto": "0.00",
+        "TotalOtrosCargos": "0.00",
+        "MedioPago": {
+            "TipoMedioPago": "01",
+            "TotalMedioPago": "1130.00"
+        },
+        "TotalComprobante": "1130.00"
+    },
+    "InformacionReferencia": {
+        "TipoDocIR": "99",
+        "Numero": "REF-001",
+        "FechaEmisionIR": "2024-01-01T12:00:00",
+        "Codigo": "04",
+        "Razon": "Referencia informativa"
+    },
+    "Otros": []
+}
