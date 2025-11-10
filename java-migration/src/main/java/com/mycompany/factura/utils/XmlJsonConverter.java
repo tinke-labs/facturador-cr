@@ -21,7 +21,7 @@ public class XmlJsonConverter {
     public String jsonToXml(String json) {
         try {
             JsonNode node = jsonMapper.readTree(json);
-            return xmlMapper.writer().withRootName("Comprobante").writeValueAsString(node);
+            return xmlMapper.writer().withRootName("ElectronicDocument").writeValueAsString(node);
         } catch (Exception e) {
             throw new IllegalArgumentException("Error convirtiendo JSON a XML", e);
         }

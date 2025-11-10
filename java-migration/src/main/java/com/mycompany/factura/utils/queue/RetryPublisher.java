@@ -18,10 +18,10 @@ public class RetryPublisher {
         this.queueProperties = queueProperties;
     }
 
-    public void publicarReintento(String clave, String motivo) {
+    public void publishRetry(String key, String reason) {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("clave", clave);
-        payload.put("motivo", motivo);
+        payload.put("clave", key);
+        payload.put("motivo", reason);
         rabbitTemplate.convertAndSend(queueProperties.getRetryExchange(), queueProperties.getRetryRouting(), payload);
     }
 }

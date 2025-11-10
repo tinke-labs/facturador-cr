@@ -9,7 +9,7 @@ public final class UuidGenerator {
     private UuidGenerator() {
     }
 
-    public static String generarClave() {
+    public static String generateKey() {
         String uuid = UUID.randomUUID().toString().replace("-", "");
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         return timestamp + uuid.substring(0, 20);
