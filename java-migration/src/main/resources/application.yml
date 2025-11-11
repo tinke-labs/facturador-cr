@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/facturacion
+    username: factura_app
+    password: changeit
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  jackson:
+    serialization:
+      indent_output: true
+
+factura:
+  hacienda:
+    token-url: https://idp.comprobanteselectronicos.go.cr/auth/realms/rut/protocol/openid-connect/token
+    recepcion-url: https://api.comprobanteselectronicos.go.cr/recepcion/v1/recepcion/
+    consulta-url: https://api.comprobanteselectronicos.go.cr/recepcion/v1/recepcion/
+    client-id: ${HACIENDACLient:factura-client}
+    client-secret: ${HACIENDACLientSecret:secret}
+  firma:
+    certificado-path: ${P12_PATH:/secure/certs/certificado.p12}
+    certificado-pin: ${P12_PIN:123456}
+  xsd-path: ${XSD_PATH:docs/xsd/FacturaElectronica_V4.4.xsd}
+  colas:
+    retry-queue: factura.reintentos
+    retry-exchange: factura.exchange
+    retry-routing: factura.routing
+    dead-letter-queue: factura.reintentos.dlq
+
+logging:
+  level:
+    root: INFO
+    com.mycompany.factura: DEBUG
