@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/facturador
+    username: facturador
+    password: facturador
+app:
+  security:
+    encryption-secret: change-me-secret
+  hacienda:
+    base-url: https://api-sandbox.hacienda.go.cr
+    token-url: https://idp-sandbox.hacienda.go.cr
+    client-id: your-client-id
+    client-secret: your-client-secret

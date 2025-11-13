@@ -1,0 +1,23 @@
+package com.facturador.tenant.context;
+
+import com.facturador.models.tenant.Tenant;
+
+public final class TenantContext {
+
+    private static final ThreadLocal<Tenant> CURRENT_TENANT = new ThreadLocal<>();
+
+    private TenantContext() {
+    }
+
+    public static void setTenant(Tenant tenant) {
+        CURRENT_TENANT.set(tenant);
+    }
+
+    public static Tenant getTenant() {
+        return CURRENT_TENANT.get();
+    }
+
+    public static void clear() {
+        CURRENT_TENANT.remove();
+    }
+}
